@@ -28,23 +28,23 @@ tasks.withType(JavaCompile) {
 
 task macArmLibCopy(type: Copy) {
     from "build/darwin-aarch64/lib/libconstantinebindings.dylib"
-    into 'build/resources/main/lib/aarch64'
+    into 'build/resources/main/lib-native/aarch64'
 }
 
 task macLibCopy(type: Copy) {
     from "build/darwin-x86-64/lib/libconstantinebindings.dylib"
-    into 'build/resources/main/lib/x86-64'
+    into 'build/resources/main/lib-native/x86-64'
 }
 
 task linuxLibCopy(type: Copy) {
     from "build/linux-gnu-x86_64/lib/libconstantinebindings.so"
-    into 'build/resources/main/lib/x86-64'
+    into 'build/resources/main/lib-native/x86-64'
 
 }
 
 task linuxArm64LibCopy(type: Copy) {
     from "build/linux-gnu-aarch64/lib/libconstantinebindings.so"
-    into 'build/resources/main/lib/aarch64'
+    into 'build/resources/main/lib-native/aarch64'
 }
 
 processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy

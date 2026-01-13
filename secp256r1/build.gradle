@@ -40,35 +40,35 @@ tasks.named('compileTestJava').configure {
 task macArmLibCopy(type: Copy) {
     from 'besu-native-ec/release/darwin-aarch64/libbesu_native_ec.dylib'
     from 'besu-native-ec/release/darwin-aarch64/libbesu_native_ec_crypto.dylib'
-    into 'build/resources/main/lib/aarch64'
+    into 'build/resources/main/lib-native/aarch64'
 }
 processResources.dependsOn macArmLibCopy
 
 task macLibCopy(type: Copy) {
     from 'besu-native-ec/release/darwin-x86-64/libbesu_native_ec.dylib'
     from 'besu-native-ec/release/darwin-x86-64/libbesu_native_ec_crypto.dylib'
-    into 'build/resources/main/lib/x86-64'
+    into 'build/resources/main/lib-native/x86-64'
 }
 processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
     from 'besu-native-ec/release/linux-gnu-x86_64/libbesu_native_ec.so'
     from 'besu-native-ec/release/linux-gnu-x86_64/libbesu_native_ec_crypto.so'
-    into 'build/resources/main/lib/x86-64'
+    into 'build/resources/main/lib-native/x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
     from 'besu-native-ec/release/linux-gnu-aarch64/libbesu_native_ec.so'
     from 'besu-native-ec/release/linux-gnu-aarch64/libbesu_native_ec_crypto.so'
-    into 'build/resources/main/lib/aarch64'
+    into 'build/resources/main/lib-native/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 
 task linuxRiscv64LibCopy(type: Copy) {
     from 'besu-native-ec/release/linux-gnu-riscv64/libbesu_native_ec.so'
     from 'besu-native-ec/release/linux-gnu-riscv64/libbesu_native_ec_crypto.so'
-    into 'build/resources/main/lib/riscv64'
+    into 'build/resources/main/lib-native/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
 

@@ -32,32 +32,32 @@ dependencies {
 }
 task macAarch64LibCopy(type: Copy) {
     from 'build/darwin-aarch64/lib/libeth_arithmetic.dylib'
-    into 'build/resources/main/lib/aarch64'
+    into 'build/resources/main/lib-native/aarch64'
 }
 processResources.dependsOn macAarch64LibCopy
 
 
 task macLibCopy(type: Copy) {
     from 'build/darwin-x86-64/lib/libeth_arithmetic.dylib'
-    into 'build/resources/main/lib/x86-64'
+    into 'build/resources/main/lib-native/x86-64'
 }
 processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
     from 'build/linux-gnu-x86_64/lib/libeth_arithmetic.so'
-    into 'build/resources/main/lib/x86-64'
+    into 'build/resources/main/lib-native/x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
     from 'build/linux-gnu-aarch64/lib/libeth_arithmetic.so'
-    into 'build/resources/main/lib/aarch64'
+    into 'build/resources/main/lib-native/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 
 task linuxRiscv64LibCopy(type: Copy) {
     from 'build/linux-gnu-riscv64/lib/libeth_arithmetic.so'
-    into 'build/resources/main/lib/riscv64'
+    into 'build/resources/main/lib-native/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
 
