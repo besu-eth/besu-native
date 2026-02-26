@@ -105,7 +105,7 @@ publishing {
             pom {
                 name = "Besu Native - ${project.name}"
                 description = 'Adapter for native arithmetic'
-                url = 'http://github.com/hyperledger/besu-native'
+                url = 'http://github.com/besu-eth/besu-native'
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
@@ -113,9 +113,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git://github.com/hyperledger/besu-native.git'
-                    developerConnection = 'scm:git:ssh://github.com/hyperledger/besu-native.git'
-                    url = 'https://github.com/hyperledger/besu-native'
+                    connection = 'scm:git:git://github.com/besu-eth/besu-native.git'
+                    developerConnection = 'scm:git:ssh://github.com/besu-eth/besu-native.git'
+                    url = 'https://github.com/besu-eth/besu-native'
                 }
             }
         }
