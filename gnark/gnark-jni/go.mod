@@ -1,4 +1,4 @@
-module github.com/hyperledger/besu-native
+module github.com/besu-eth/besu-native
 
 go 1.25
 
