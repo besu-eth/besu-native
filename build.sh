@@ -242,14 +242,8 @@ EOF
   rm -rf "$SCRIPTDIR/secp256r1/build" || true
   find . -name *.o -exec rm -rf {} \;
 
-  if [[ "$OSTYPE" == "msys" ]]; then
-  	LIBRARY_EXTENSION=dll
-  	EXTRA_FLAGS=""
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    LIBRARY_EXTENSION=so
-    EXTRA_FLAGS=""
-  elif [[ "$OSTYPE" == "darwin"* ]]; then
-    LIBRARY_EXTENSION=dylib
+  EXTRA_FLAGS=""
+  if [[ "$OSTYPE" == "darwin"* ]]; then
     EXTRA_FLAGS="no-asm" # avoid assembly because of pipeline error
   fi
 
@@ -264,13 +258,14 @@ EOF
 
   cd openssl
 
-  ./Configure $OPENSSL_PLATFORM enable-ec_nistp_64_gcc_128 no-stdio no-ocsp no-nextprotoneg no-module \
+  ./Configure $OPENSSL_PLATFORM no-shared -fPIC -fvisibility=hidden \
+              enable-ec_nistp_64_gcc_128 no-stdio no-ocsp no-nextprotoneg no-module \
               no-legacy no-gost no-engine no-dynamic-engine no-deprecated no-comp \
               no-cmp no-capieng no-ui-console no-tls no-ssl no-dtls no-aria no-bf \
               no-blake2 no-camellia no-cast no-chacha no-cmac no-des no-dh no-dsa \
               no-ecdh no-idea no-md4 no-mdc2 no-ocb no-poly1305 no-rc2 no-rc4 no-rmd160 \
               no-scrypt no-seed no-siphash no-siv no-sm2 no-sm3 no-sm4 no-whirlpool $EXTRA_FLAGS
-  make build_generated libcrypto.$LIBRARY_EXTENSION
+  make build_generated libcrypto.a
 
   cd ../
 
@@ -278,7 +273,6 @@ EOF
 
   if [[ "$OSTYPE" == "darwin"* ]]; then
     lipo -info ./release/libbesu_native_ec.dylib
-    lipo -info ./release/libbesu_native_ec_crypto.dylib
   fi
 
   mkdir -p "./release/${OSARCH}"

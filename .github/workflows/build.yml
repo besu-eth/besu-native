@@ -19,7 +19,7 @@ jobs:
           # secp256k1 dependencies
           apt-get update
           apt upgrade -y
-          DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf build-essential libtool automake patchelf wget git curl openjdk-21-jdk cmake
+          DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf build-essential libtool automake wget git curl openjdk-21-jdk cmake
           apt autoremove -y
           echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
           # golang dependencies
