@@ -27,7 +27,6 @@ public class BesuNativeEC implements Library {
 	static {
 		boolean enabled;
 		try {
-			BesuNativeLibraryLoader.registerJNA(Library.class, "besu_native_ec_crypto");
 			BesuNativeLibraryLoader.registerJNA(BesuNativeEC.class, "besu_native_ec");
 			enabled = true;
 		} catch (final Exception t) {

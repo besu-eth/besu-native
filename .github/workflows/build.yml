@@ -19,7 +19,7 @@ jobs:
           # secp256k1 dependencies
           apt-get update
           apt upgrade -y
-          DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf build-essential libtool automake patchelf wget git curl openjdk-21-jdk cmake
+          DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf build-essential libtool automake wget git curl openjdk-21-jdk cmake
           apt autoremove -y
           echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
           # golang dependencies
@@ -164,6 +164,8 @@ jobs:
           brew install autoconf automake libtool
           # gnark dependencies
           brew install go@1.25 || true
+          # Unlink brew llvm to prevent x86_64-only libunwind from breaking arm64 cross-compilation
+          brew unlink llvm@18 || true
           # rust dependencies
           export CARGO_HOME="$HOME/.cargo"
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.89.0
