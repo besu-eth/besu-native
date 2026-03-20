@@ -7,7 +7,48 @@ on:
       - main
 
 jobs:
+  check-version:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+      # Check whether gradle.properties version has been released already
+      # This prevents accidentally publishing the same version
+      # Only check binary for arithmetic as all are published together
+      - name: Check release not already published
+        shell: bash
+        run: |
+          # Only interested in release version
+          if [[ $(grep -E 'version=[0-9]+\.[0-9]+\.[0-9]+$' gradle.properties | wc -l) -ne 0 ]]
+          then
+            VERSION=$(grep "^version" gradle.properties | sed 's|^version=\(.*\)$|\1|g')
+            echo "Query for version [$VERSION]"
+            RESPONSE_CODE=$(curl --head -L --silent --output /dev/null --write-out %{http_code} "$ART_URL/$VERSION")
+            echo "Response code for curl command [$RESPONSE_CODE]"
+            if [[ $RESPONSE_CODE == "404" ]]
+            then
+              echo "Version [$VERSION] has not yet been published"
+            elif [[ $RESPONSE_CODE == "200" ]]
+            then
+              echo "ERROR: Binary arithmetic already exists for version [$VERSION]"
+              echo "ERROR: Blocking republishing same version to the Besu Artifactory"
+              echo "url $ART_URL/$VERSION"
+              exit 1
+            else
+              echo "WARN: Unable to check whether version has been published previously"
+              echo "WARN: Failing job due to unknown status"
+              exit 1
+            fi
+          else
+            echo "No validation as not a release version"
+          fi
+        env:
+          ART_URL: 'https://hyperledger.jfrog.io/artifactory/besu-maven/org/hyperledger/besu/arithmetic'
+
   native-build-linux-x86-64:
+    needs: check-version
+    if: always() && (needs.check-version.result == 'success' || needs.check-version.result == 'skipped')
     runs-on: ubuntu-latest
     container:
       image: ubuntu:22.04
@@ -34,44 +75,9 @@ jobs:
           curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
           export PATH=$HOME/.nimble/bin:$PATH
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
-      # Check whether gradle.properties version has been released already
-      # This prevents accidently publish same version
-      # Only check binary for arithmetic as all published together and arithmetic is the first
-      - name: Check release published
-        run: |
-          # Only interested in release version
-          if [[ $(grep -E 'version=[0-9]+\.[0-9]+\.[0-9]+$' gradle.properties | wc -l) -ne 0 ]]
-          then
-            # Extract version from gradle.properties
-            VERSION=$(grep "^version" gradle.properties | sed 's|^version=\(.*\)$|\1|g')
-            echo "Query for version [$VERSION]"
-            RESPONSE_CODE=$(curl --head -L --silent --output /dev/null  --write-out %{http_code} "$ART_URL/$VERSION")
-            echo "Response code for curl command [$RESPONSE_CODE]"
-            if [[ $RESPONSE_CODE == "404" ]]
-            then
-              echo "Version [$VERSION] has not yet been published"
-            else
-              if [[ $RESPONSE_CODE == "200" ]]
-              then
-                echo "ERROR: Binary arithmetic already exists for version [$VERSION]"
-                echo "ERROR: Blocking republishing same version to the Besu Artifactory"
-                echo "url $ART_URL/$VERSION"
-                exit 1
-              else
-                echo "WARN: Unable to check whether version has been published previously"
-                echo "WARN: Failing job due to unknown status"
-                exit 1
-              fi
-
-            fi
-          else
-            echo "No validation as not a release version"
-          fi
-        env:
-          ART_URL: 'https://hyperledger.jfrog.io/artifactory/besu-maven/org/hyperledger/besu/arithmetic'
       - name: Build
         run: ./build.sh
       - uses: actions/upload-artifact@v4
@@ -108,12 +114,14 @@ jobs:
           path: boringssl/build/
 
   native-build-linux-arm64:
+    needs: check-version
+    if: always() && (needs.check-version.result == 'success' || needs.check-version.result == 'skipped')
     runs-on: besu-arm64
     env:
       SKIP_GRADLE: true
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Build
@@ -154,6 +162,8 @@ jobs:
           path: boringssl/build/
 
   native-build-macos:
+    needs: check-version
+    if: always() && (needs.check-version.result == 'success' || needs.check-version.result == 'skipped')
     runs-on: macos-15-intel
     env:
       SKIP_GRADLE: true
@@ -178,7 +188,7 @@ jobs:
           curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
           export PATH=$HOME/.nimble/bin:$PATH
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Build
@@ -217,6 +227,8 @@ jobs:
           path: boringssl/build/
 
   native-build-m1:
+    needs: check-version
+    if: always() && (needs.check-version.result == 'success' || needs.check-version.result == 'skipped')
     runs-on: macos-15-xlarge
     env:
       SKIP_GRADLE: true
@@ -249,15 +261,14 @@ jobs:
           curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
           export PATH=$HOME/.nimble/bin:$PATH
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
-          distribution: adopt
-          java-version: 21
-          cache: gradle
+          distribution: 'temurin'
+          java-version: '21'
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -310,7 +321,7 @@ jobs:
       - native-build-linux-arm64
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Download arithmetic
         uses: actions/download-artifact@v4
         with:
@@ -474,15 +485,14 @@ jobs:
           name: boringssl-native-build-artifacts-macos-arm64
           path: boringssl/build/
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: adopt
           java-version: 21
-          cache: gradle
-      - name: gradle build
-        uses: gradle/gradle-build-action@v2.4.2
-        with:
-          arguments: --no-daemon --parallel build --scan
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+      - name: Execute Gradle Build
+        run: ./gradlew --no-daemon --parallel build --scan
       - uses: actions/upload-artifact@v4
         with:
           name: jars-arithmetic
@@ -520,10 +530,8 @@ jobs:
           name: jars-common
           path: common/build/libs
       - name: gradle publish
-        uses: gradle/gradle-build-action@v2
         if: contains('refs/heads/release-', github.ref) || github.ref == 'refs/heads/main'
         env:
           ARTIFACTORY_USER: ${{ secrets.BESU_ARTIFACTORY_USER }}
           ARTIFACTORY_KEY: ${{ secrets.BESU_ARTIFACTORY_TOKEN }}
-        with:
-          arguments: --no-daemon --parallel publish artifactoryPublish --scan
+        run: ./gradlew --no-daemon --parallel publish artifactoryPublish --scan
