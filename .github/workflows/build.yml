@@ -7,9 +7,9 @@ on:
       - main
 
 jobs:
-  # Only runs on push to main. Prevents re-publishing an already released version to Artifactory.
-  # This job is skipped on PRs; downstream build jobs use always() to still run when skipped.
   check-version:
+  # Returns 1 when release version is already published. This allows to skip build-*/publish jobs during push to main.
+  # It is skipped on PRs; however, downstream build-* jobs still run when this job is skipped.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
