@@ -8,8 +8,8 @@ on:
 
 jobs:
   check-version:
-  # Returns 1 when release version is already published. This allows to skip build-*/publish jobs during push to main.
-  # It is skipped on PRs; however, downstream build-* jobs still run when this job is skipped.
+  # Upon push to main, check-version returns error if release version is already published ensuring build-*/publish jobs are skipped.
+  # check-version is skipped on PRs, however downstream build-* jobs still run on PRs.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
