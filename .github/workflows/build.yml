@@ -7,6 +7,8 @@ on:
       - main
 
 jobs:
+  # Only runs on push to main. Prevents re-publishing an already released version to Artifactory.
+  # This job is skipped on PRs; downstream build jobs use always() to still run when skipped.
   check-version:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -48,6 +50,8 @@ jobs:
 
   native-build-linux-x86-64:
     needs: check-version
+    # Run if check-version succeeded (push to main) or was skipped (PRs, where check-version doesn't apply).
+    # always() is needed because jobs that depend on a skipped job are skipped by default.
     if: always() && (needs.check-version.result == 'success' || needs.check-version.result == 'skipped')
     runs-on: ubuntu-latest
     container:
@@ -115,6 +119,8 @@ jobs:
 
   native-build-linux-arm64:
     needs: check-version
+    # Run if check-version succeeded (push to main) or was skipped (PRs, where check-version doesn't apply).
+    # always() is needed because jobs that depend on a skipped job are skipped by default.
     if: always() && (needs.check-version.result == 'success' || needs.check-version.result == 'skipped')
     runs-on: besu-arm64
     env:
@@ -163,6 +169,8 @@ jobs:
 
   native-build-macos:
     needs: check-version
+    # Run if check-version succeeded (push to main) or was skipped (PRs, where check-version doesn't apply).
+    # always() is needed because jobs that depend on a skipped job are skipped by default.
     if: always() && (needs.check-version.result == 'success' || needs.check-version.result == 'skipped')
     runs-on: macos-15-intel
     env:
@@ -228,6 +236,8 @@ jobs:
 
   native-build-m1:
     needs: check-version
+    # Run if check-version succeeded (push to main) or was skipped (PRs, where check-version doesn't apply).
+    # always() is needed because jobs that depend on a skipped job are skipped by default.
     if: always() && (needs.check-version.result == 'success' || needs.check-version.result == 'skipped')
     runs-on: macos-15-xlarge
     env:
