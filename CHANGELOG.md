@@ -6,7 +6,7 @@
 
 # ~~1.4.3~~ - 2026-03-02 (deprecated release)
 > [!NOTE]
-> This release has been deprecated because the maven coordinates has been mistakenly overwritten. 
+> This release has been deprecated because the maven coordinates have been mistakenly overwritten. 
 
 - The repository has migrated from `hyperledger/besu-native` to `besu-eth/besu-native`
 - This document has been backfilled to collect release notes from previously omitted releases.
