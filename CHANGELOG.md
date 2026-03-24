@@ -1,6 +1,6 @@
 # Changelog
 
-# Upcoming Changes
+# 1.5.0 - 2026-03-24
 * fix: Static-link OpenSSL in secp256r1 to prevent symbol leaking into JVM process. Removes separate `libbesu_native_ec_crypto` shared library. [#308](https://github.com/besu-eth/besu-native/pull/308)
 * build(ci): Fix release workflow
 
