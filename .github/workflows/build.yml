@@ -55,7 +55,7 @@ jobs:
     if: always() && (needs.check-version.result == 'success' || needs.check-version.result == 'skipped')
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:22.04
+      image: ubuntu:24.04
     env:
       SKIP_GRADLE: true
     steps:
@@ -132,7 +132,7 @@ jobs:
           submodules: recursive
       - name: Build
         run: |
-          docker run -e SKIP_GRADLE=$SKIP_GRADLE -v $(pwd):/home/ubuntu ubuntu:22.04 /home/ubuntu/native-build.sh
+          docker run -e SKIP_GRADLE=$SKIP_GRADLE -v $(pwd):/home/ubuntu ubuntu:24.04 /home/ubuntu/native-build.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: arithmetic-native-build-artifacts-linux-arm64
