@@ -1,9 +1,12 @@
 # Changelog
 
-# Unreleased
-* fix: Static-link OpenSSL in secp256r1 to prevent symbol leaking into JVM process. Removes separate `libbesu_native_ec_crypto` shared library.
+# Upcoming Changes
+* fix: Static-link OpenSSL in secp256r1 to prevent symbol leaking into JVM process. Removes separate `libbesu_native_ec_crypto` shared library. [#308](https://github.com/besu-eth/besu-native/pull/308)
+* build(ci): Fix release workflow
 
-# 1.4.3 - 2026-03-02
+# ~~1.4.3~~ - 2026-03-02 (deprecated release)
+> [!NOTE]
+> This release has been deprecated because the maven coordinates have been mistakenly overwritten. 
 
 - The repository has migrated from `hyperledger/besu-native` to `besu-eth/besu-native`
 - This document has been backfilled to collect release notes from previously omitted releases.
