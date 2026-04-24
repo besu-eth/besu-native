@@ -65,6 +65,7 @@ func eip196altbn128G1Add(javaInputBuf, javaOutputBuf *C.char, cInputLen C.int) e
 	// Convert input C pointers to Go slices
 	input := (*[2 * EIP196PreallocateForG1]byte)(unsafe.Pointer(javaInputBuf))[:inputLen:inputLen]
 
+// _altbn128G1Add
 	// generate p0 g1 affine
 	var p0 bn254.G1Affine
 	if err := safeUnmarshalEIP196(&p0, input, 0); err != errCodeSuccess {

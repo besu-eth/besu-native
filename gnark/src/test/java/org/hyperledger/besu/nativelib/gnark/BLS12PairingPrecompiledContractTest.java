@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Streams;
 import com.google.common.io.CharStreams;
-import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,18 +42,17 @@ public class BLS12PairingPrecompiledContractTest {
 
   @Parameterized.Parameters
   public static Iterable<String[]> parameters() throws IOException {
-    return
-        Streams.concat(
+    return Streams.concat(
             CharStreams.readLines(
-                new InputStreamReader(
-                    BLS12PairingPrecompiledContractTest.class.getResourceAsStream("pairing.csv"),
-                    UTF_8))
+                    new InputStreamReader(
+                        BLS12PairingPrecompiledContractTest.class.getResourceAsStream("pairing.csv"),
+                        UTF_8))
                 .stream(),
             CharStreams.readLines(
-                new InputStreamReader(
-                    BLS12PairingPrecompiledContractTest.class.getResourceAsStream(
-                        "invalid_subgroup_for_pairing.csv"),
-                    UTF_8))
+                    new InputStreamReader(
+                        BLS12PairingPrecompiledContractTest.class.getResourceAsStream(
+                            "invalid_subgroup_for_pairing.csv"),
+                        UTF_8))
                 .stream())
         .map(line -> line.split(",", 4))
         .collect(Collectors.toList());
@@ -68,27 +66,18 @@ public class BLS12PairingPrecompiledContractTest {
     }
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
-    final byte[] output = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_RESULT_BYTES];
-    final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibGnarkEIP2537.EIP2537_PREALLOCATE_FOR_ERROR_BYTES];
-    final IntByReference errorLength = new IntByReference();
+    final byte[] output = new byte[LibGnarkEIP2537.EIP2537_PAIR_PREALLOCATE_FOR_RESULT_BYTES];
 
-    LibGnarkEIP2537.eip2537_perform_operation(
-        LibGnarkEIP2537.BLS12_PAIR_OPERATION_SHIM_VALUE,
-        input,
-        input.length,
-        output,
-        outputLength,
-        error,
-        errorLength);
+    int errorCode =
+        LibGnarkEIP2537.eip2537_perform_operation(
+            LibGnarkEIP2537.BLS12_PAIR_OPERATION_SHIM_VALUE, input, input.length, output);
 
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
-    if (errorLength.getValue() > 0) {
-      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).isEqualTo(notes);
-      assertThat(outputLength.getValue()).isZero();
+    if (errorCode != LibGnarkEIP2537.EIP2537_ERR_CODE_SUCCESS) {
+      assertThat(notes).isNotEmpty();
     } else {
-      final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
+      final Bytes actualComputation = Bytes.wrap(output, 0, expectedComputation.size());
       assertThat(actualComputation).isEqualTo(expectedComputation);
       assertThat(notes).isEmpty();
     }

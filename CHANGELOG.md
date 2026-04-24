@@ -2,6 +2,8 @@
 
 # 1.5.1-SNAPSHOT (Unreleased)
 
+* BREAKING: `LibGnarkEIP2537` native methods now private; use `eip2537_perform_operation` (simplified signature, no error-buffer params) or the new `isG1OnCurve` / `isG1InSubGroup` / `isG2OnCurve` / `isG2InSubGroup` boolean helpers
+* perf: Optimize EIP-2537 BLS12-381 precompiles — drop per-call error-string buffer, replace with integer error codes, move output-buffer validation to Java wrapper
 
 # 1.5.0 - 2026-03-24
 * fix: Static-link OpenSSL in secp256r1 to prevent symbol leaking into JVM process. Removes separate `libbesu_native_ec_crypto` shared library. [#308](https://github.com/besu-eth/besu-native/pull/308)
