@@ -1,6 +1,7 @@
 # Changelog
 
 # 1.5.1-SNAPSHOT (Unreleased)
+* BREAKING: Remove the `ipa-multipoint` library as it is no longer needed.
 
 
 # 1.5.0 - 2026-03-24

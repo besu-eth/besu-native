@@ -102,10 +102,6 @@ jobs:
           path: secp256r1/besu-native-ec/release/
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: ipa-multipoint-native-build-artifacts-linux-x86-64
-          path: ipa-multipoint/build/
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
           name: gnark-native-build-artifacts-linux-x86-64
           path: gnark/build/
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -150,10 +146,6 @@ jobs:
         with:
           name: secp256r1-native-build-artifacts-linux-arm64
           path: secp256r1/besu-native-ec/release/
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: ipa-multipoint-native-build-artifacts-linux-arm64
-          path: ipa-multipoint/build/
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: gnark-native-build-artifacts-linux-arm64
@@ -217,10 +209,6 @@ jobs:
         with:
           name: secp256r1-native-build-artifacts-macos-x86-64
           path: secp256r1/besu-native-ec/release/
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: ipa-multipoint-native-build-artifacts-macos-x86-64
-          path: ipa-multipoint/build/
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: gnark-native-build-artifacts-macos-x86-64
@@ -305,10 +293,6 @@ jobs:
         with:
           name: secp256r1-native-build-artifacts-macos-arm64
           path: secp256r1/besu-native-ec/release/
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: ipa-multipoint-native-build-artifacts-macos-arm64
-          path: ipa-multipoint/build/
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: gnark-native-build-artifacts-macos-arm64
@@ -414,26 +398,6 @@ jobs:
         with:
           name: secp256r1-native-build-artifacts-macos-arm64
           path: secp256r1/besu-native-ec/release/
-      - name: Download ipa-multipoint
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: ipa-multipoint-native-build-artifacts-linux-x86-64
-          path: ipa-multipoint/build/
-      - name: Download ipa-multipoint
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: ipa-multipoint-native-build-artifacts-linux-arm64
-          path: ipa-multipoint/build/
-      - name: Download ipa-multipoint
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: ipa-multipoint-native-build-artifacts-macos-x86-64
-          path: ipa-multipoint/build/
-      - name: Download ipa-multipoint
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: ipa-multipoint-native-build-artifacts-macos-arm64
-          path: ipa-multipoint/build/
       - name: Download gnark
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -519,10 +483,6 @@ jobs:
         with:
           name: jars-secp256r1
           path: secp256r1/build/libs
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: jars-ipa-multipoint
-          path: ipa-multipoint/build/libs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: jars-gnark

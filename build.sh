@@ -162,41 +162,6 @@ EOF
   cp target/release/libeth_arithmetic.* "$SCRIPTDIR/arithmetic/build/${OSARCH}/lib"
 }
 
-build_ipa_multipoint() {
-  cat <<EOF
-  ##################################
-  ###### build ipa_multipoint ######
-  ##################################
-EOF
-
-  cd "$SCRIPTDIR/ipa-multipoint/ipa_multipoint_jni"
-
-  # delete old build dir, if exists
-  rm -rf "$SCRIPTDIR/ipa-multipoint/build" || true
-  mkdir -p "$SCRIPTDIR/ipa-multipoint/build/${OSARCH}/lib"
-
-  cargo clean
-
-  if [[ "$OSARCH" == "darwin-x86-64" ]];  then
-    cargo build --lib --release --target=x86_64-apple-darwin
-    lipo -create \
-      -output target/release/libipa_multipoint_jni.dylib \
-      -arch x86_64 target/x86_64-apple-darwin/release/libipa_multipoint_jni.dylib
-    lipo -info ./target/release/libipa_multipoint_jni.dylib
-  elif [[ "$OSARCH" == "darwin-aarch64" ]]; then
-    cargo build --lib --release --target=aarch64-apple-darwin
-    lipo -create \
-      -output target/release/libipa_multipoint_jni.dylib \
-      -arch arm64 target/aarch64-apple-darwin/release/libipa_multipoint_jni.dylib
-    lipo -info ./target/release/libipa_multipoint_jni.dylib
-  else
-    cargo build --lib --release
-  fi
-
-  mkdir -p "$SCRIPTDIR/ipa-multipoint/build/${OSARCH}/lib"
-  cp target/release/libipa_multipoint_jni.* "$SCRIPTDIR/ipa-multipoint/build/${OSARCH}/lib"
-}
-
 build_jars(){
   ########################
   ###### build jars ######
@@ -404,7 +369,6 @@ EOF
 build_blake2bf
 build_secp256k1
 build_arithmetic
-build_ipa_multipoint
 build_secp256r1
 build_gnark
 build_constantine
