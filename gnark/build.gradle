@@ -25,6 +25,7 @@ sourceSets {
     java {
       srcDir 'src/main/java'
       include '**/*Graal*.java'
+      include '**/LibGnarkUtils.java'
     }
     // Graal source set needs access to main source set classes
     compileClasspath += sourceSets.main.output

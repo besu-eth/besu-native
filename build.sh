@@ -42,12 +42,14 @@ fi
 
 if [[ "$OSTYPE" == "darwin"* ]];  then
   CORE_COUNT=$(sysctl -n hw.ncpu)
+  # Set deployment target for Apple Silicon support (macOS 11.0+)
+  export MACOSX_DEPLOYMENT_TARGET=11.0
   if [[ "`machine`" == "arm"* ]]; then
     arch_name="aarch64"
-    export CFLAGS="-arch arm64"
+    export CFLAGS="-arch arm64 -mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
   else
     arch_name="x86-64"
-    export CFLAGS="-arch x86_64"
+    export CFLAGS="-arch x86_64 -mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
   fi
   OSARCH="darwin-$arch_name"
 fi
@@ -362,7 +364,12 @@ EOF
   cd "$SCRIPTDIR/boringssl/google-boringssl/"
   rm -rf build && mkdir build
   #-fPIC is redundant on macos, but required for building on linux
-  cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release
+  # Set deployment target explicitly to match JNI build
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET}
+  else
+    cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+  fi
   make -C build
 
   # build boringssl_jni shared lib linked against boringssl static lib

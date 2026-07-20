@@ -17,8 +17,6 @@ package org.hyperledger.besu.nativelib.boringssl;
 
 import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -26,9 +24,9 @@ public class BoringSSLPrecompiles {
 
   public static final boolean ENABLED;
 
-  public static final int STATUS_SUCCESS = 0;
-  public static final int STATUS_FAIL = 1;
-  public static final int STATUS_ERROR = 2;
+  public static final int STATUS_SUCCESS = BoringSSLPrecompilesCommon.STATUS_SUCCESS;
+  public static final int STATUS_FAIL = BoringSSLPrecompilesCommon.STATUS_FAIL;
+  public static final int STATUS_ERROR = BoringSSLPrecompilesCommon.STATUS_ERROR;
 
 
   static {
@@ -62,17 +60,12 @@ public class BoringSSLPrecompiles {
 
 
 
-  // Wrapper result classes
-  public static class P256VerifyResult {
-    public final int status;
-    public final String error;
-
+  // Wrapper result classes - use common implementations
+  public static class P256VerifyResult extends BoringSSLPrecompilesCommon.P256VerifyResult {
     public P256VerifyResult(final int status, final String message) {
-      this.status = status;
-      this.error = message;
+      super(status, message);
     }
   }
-
 
   public record ECRecoverResult(
       int status,
@@ -81,7 +74,7 @@ public class BoringSSLPrecompiles {
 
 
   // Safe, wrapped version of the native calls
-  final static int ERROR_BUF_SIZE = 256;
+  final static int ERROR_BUF_SIZE = BoringSSLPrecompilesCommon.ERROR_BUF_SIZE;
 
   public static P256VerifyResult p256Verify(final byte[] input, final int inputLength) {
 
@@ -107,71 +100,32 @@ public class BoringSSLPrecompiles {
             uncompressedPubKey, uncompressedPubKey.length,
             errorBuf, ERROR_BUF_SIZE);
 
-    return new P256VerifyResult(status, bytesToNullTermString(errorBuf));
+    return new P256VerifyResult(status, BoringSSLPrecompilesCommon.bytesToNullTermString(errorBuf));
   }
-
-  // secp256r1 curve order
-  private static final BigInteger SECP256R1_ORDER =
-      new BigInteger("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551", 16);
 
   public static ECRecoverResult ecrecover(final byte[] hash, final byte[] sig,
       final int recovery_id) {
-    // Validate signature length
-    if (sig == null || sig.length != 64) {
-      return new ECRecoverResult(STATUS_ERROR, Optional.empty(),
-          Optional.of("invalid signature length"));
+
+    // Validate input using common validation logic
+    Optional<BoringSSLPrecompilesCommon.ECRecoverResult> validationError =
+        BoringSSLPrecompilesCommon.validateEcrecoverInput(hash, sig, recovery_id);
+    if (validationError.isPresent()) {
+      BoringSSLPrecompilesCommon.ECRecoverResult err = validationError.get();
+      return new ECRecoverResult(err.status(), err.publicKey(), err.error());
     }
 
-    if (hash == null || hash.length != 32) {
-      return new ECRecoverResult(STATUS_ERROR, Optional.empty(),
-          Optional.of("invalid hash length"));
-    }
     byte[] errorBuf = new byte[ERROR_BUF_SIZE];
-
-    // Extract r and s values
-    byte[] rBytes = new byte[32];
-    byte[] sBytes = new byte[32];
-    System.arraycopy(sig, 0, rBytes, 0, 32);
-    System.arraycopy(sig, 32, sBytes, 0, 32);
-
-    BigInteger r = new BigInteger(1, rBytes);
-    BigInteger s = new BigInteger(1, sBytes);
-
-    // Validate r and s are in range [1, n-1] before calling native method
-    if (r.equals(BigInteger.ZERO) || r.compareTo(SECP256R1_ORDER) >= 0) {
-      return new ECRecoverResult(STATUS_ERROR, Optional.empty(),
-          Optional.of("invalid signature r value"));
-    }
-
-    if (s.equals(BigInteger.ZERO) || s.compareTo(SECP256R1_ORDER) >= 0) {
-      return new ECRecoverResult(STATUS_ERROR, Optional.empty(),
-          Optional.of("invalid signature s value"));
-    }
-
-    if (recovery_id < 0 || recovery_id > 1) {
-      return new ECRecoverResult(STATUS_ERROR, Optional.empty(),
-          Optional.of("invalid recovery id " + recovery_id + " is not 0 or 1"));
-    }
 
     byte[] output = new byte[65];
     byte[] error_buf = new byte[ERROR_BUF_SIZE];
     int status = ecrecover_r1(hash, hash.length, sig, sig.length, recovery_id, output, output.length,
         errorBuf, ERROR_BUF_SIZE);
 
-    if (status == 0) {
+    if (status == STATUS_SUCCESS) {
       return new ECRecoverResult(status, Optional.of(output), Optional.empty());
     } else {
-      String errorMessage = bytesToNullTermString(error_buf);
+      String errorMessage = BoringSSLPrecompilesCommon.bytesToNullTermString(error_buf);
       return new ECRecoverResult(status, Optional.empty(), Optional.of(errorMessage));
     }
   }
-
-  static String bytesToNullTermString(final byte[] buffer) {
-    int nullTerminator = 0;
-    while (nullTerminator < buffer.length && buffer[nullTerminator] != 0) {
-      nullTerminator++;
-    }
-    return new String(buffer, 0, nullTerminator, StandardCharsets.UTF_8);
-  }
-
 }
