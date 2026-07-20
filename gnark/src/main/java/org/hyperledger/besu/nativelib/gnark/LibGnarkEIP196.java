@@ -20,14 +20,30 @@ import org.hyperledger.besu.nativelib.common.BesuNativeLibraryLoader;
 
 public class LibGnarkEIP196 {
 
-  public static final int EIP196_PREALLOCATE_FOR_RESULT_BYTES = 128;
-  public static final int EIP196_PREALLOCATE_FOR_ERROR_BYTES = 256; // includes error string
+  public static final int EIP196_PREALLOCATE_FOR_RESULT_BYTES = 64;
+  public static final int EIP196_PAIR_PREALLOCATE_FOR_RESULT_BYTES = 32;
   @SuppressWarnings("WeakerAccess")
   public static final byte EIP196_ADD_OPERATION_RAW_VALUE = 1;
   public static final byte EIP196_MUL_OPERATION_RAW_VALUE = 2;
   public static final byte EIP196_PAIR_OPERATION_RAW_VALUE = 3;
 
   public static final boolean ENABLED;
+
+  // Keep in sync with the Go code. We use constant values to avoid passing strings from Java to Go
+  // errCodeSuccess errorCode = iota
+  // errCodeInvalidInputPairingLengthEIP196
+  // errCodePointNotInFieldEIP196
+  // errCodePointInSubgroupCheckFailedEIP196
+  // errCodePointOnCurveCheckFailedEIP196
+  // errCodePairingCheckErrorEIP196
+  public static final int EIP196_ERR_CODE_SUCCESS = 0;
+  public static final int EIP196_ERR_CODE_INVALID_INPUT_PAIRING_LENGTH = 1;
+  public static final int EIP196_ERR_CODE_POINT_NOT_IN_FIELD = 2;
+  public static final int EIP196_ERR_CODE_POINT_IN_SUBGROUP_CHECK_FAILED = 3;
+  public static final int EIP196_ERR_CODE_POINT_ON_CURVE_CHECK_FAILED = 4;
+  public static final int EIP196_ERR_CODE_PAIRING_CHECK_ERROR = 5;
+  // only on java side
+  public static final int EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH = 6;
 
   static {
     boolean enabled;
@@ -42,27 +58,40 @@ public class LibGnarkEIP196 {
   }
 
   /**
-   * Here as a compatibility shim for the pre-existing matter-labs implementation.
+   * SAFETY: This method validates output buffer size before calling native code to prevent JVM crashes from buffer overflows.
+   * The native methods use JNA direct mapping without bounds checking.
+   *
+   * @param op Operation type (ADD=1, MUL=2, PAIR=3)
+   * @param i Input data
+   * @param i_len Length of valid input data
+   * @param output Output buffer - MUST be at least EIP196_PREALLOCATE_FOR_RESULT_BYTES (64 bytes)
+   * @return Error code: 0=success, 6=invalid output length, other codes from native operations
    */
   public static int eip196_perform_operation(
       byte op,
       byte[] i,
       int i_len,
-      byte[] output,
-      IntByReference o_len,
-      byte[] err,
-      IntByReference err_len) {
+      byte[] output) {
 
     int ret = -1;
     switch(op) {
       case EIP196_ADD_OPERATION_RAW_VALUE:
-        ret = eip196altbn128G1Add(i, output, err, i_len, o_len, err_len);
+        if (output.length < EIP196_PREALLOCATE_FOR_RESULT_BYTES) {
+          return EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH;
+        }
+        ret = eip196altbn128G1Add(i, output, i_len);
         break;
       case  EIP196_MUL_OPERATION_RAW_VALUE:
-        ret = eip196altbn128G1Mul(i, output, err, i_len, o_len, err_len);
+        if (output.length < EIP196_PREALLOCATE_FOR_RESULT_BYTES) {
+          return EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH;
+        }
+        ret = eip196altbn128G1Mul(i, output, i_len);
         break;
       case EIP196_PAIR_OPERATION_RAW_VALUE:
-        ret = eip196altbn128Pairing(i, output, err, i_len, o_len, err_len);
+        if (output.length < EIP196_PAIR_PREALLOCATE_FOR_RESULT_BYTES) {
+          return EIP196_ERR_CODE_INVALID_OUTPUT_LENGTH;
+        }
+        ret = eip196altbn128Pairing(i, output, i_len);
         break;
       default:
         throw new RuntimeException("Not Implemented EIP-196 operation " + op);
@@ -71,21 +100,27 @@ public class LibGnarkEIP196 {
     return ret;
   }
 
-  public static native int eip196altbn128G1Add(
+  /**
+   * Assumes output length bounds are already checked, otherwise can lead to JVM crash
+   */
+  private static native int eip196altbn128G1Add(
       byte[] input,
       byte[] output,
-      byte[] error,
-      int inputSize, IntByReference outputSize, IntByReference err_len);
+      int inputSize);
 
-  public static native int eip196altbn128G1Mul(
+  /**
+   * Assumes output length bounds are already checked, otherwise can lead to JVM crash
+   */
+  private static native int eip196altbn128G1Mul(
       byte[] input,
       byte[] output,
-      byte[] error,
-      int inputSize, IntByReference output_len, IntByReference err_len);
+      int inputSize);
 
-  public static native int eip196altbn128Pairing(
+  /**
+   * Assumes output length bounds are already checked, otherwise can lead to JVM crash
+   */
+  private static native int eip196altbn128Pairing(
       byte[] input,
       byte[] output,
-      byte[] error,
-      int inputSize, IntByReference output_len, IntByReference err_len);
+      int inputSize);
 }

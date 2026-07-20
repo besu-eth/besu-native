@@ -28,23 +28,23 @@ tasks.withType(JavaCompile) {
 
 task macArmLibCopy(type: Copy) {
     from "build/darwin-aarch64/lib/libconstantinebindings.dylib"
-    into 'build/resources/main/lib/aarch64'
+    into 'build/resources/main/lib-native/aarch64'
 }
 
 task macLibCopy(type: Copy) {
     from "build/darwin-x86-64/lib/libconstantinebindings.dylib"
-    into 'build/resources/main/lib/x86-64'
+    into 'build/resources/main/lib-native/x86-64'
 }
 
 task linuxLibCopy(type: Copy) {
     from "build/linux-gnu-x86_64/lib/libconstantinebindings.so"
-    into 'build/resources/main/lib/x86-64'
+    into 'build/resources/main/lib-native/x86-64'
 
 }
 
 task linuxArm64LibCopy(type: Copy) {
     from "build/linux-gnu-aarch64/lib/libconstantinebindings.so"
-    into 'build/resources/main/lib/aarch64'
+    into 'build/resources/main/lib-native/aarch64'
 }
 
 processResources.dependsOn macArmLibCopy, macLibCopy, linuxLibCopy, linuxArm64LibCopy
@@ -101,7 +101,7 @@ publishing {
             pom {
                 name = "Besu Native - ${project.name}"
                 description = 'Adapter for native constantine library'
-                url = 'http://github.com/hyperledger/besu-native'
+                url = 'http://github.com/besu-eth/besu-native'
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
@@ -109,9 +109,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git://github.com/hyperledger/besu-native.git'
-                    developerConnection = 'scm:git:ssh://github.com/hyperledger/besu-native.git'
-                    url = 'https://github.com/hyperledger/besu-native'
+                    connection = 'scm:git:git://github.com/besu-eth/besu-native.git'
+                    developerConnection = 'scm:git:ssh://github.com/besu-eth/besu-native.git'
+                    url = 'https://github.com/besu-eth/besu-native'
                 }
             }
         }

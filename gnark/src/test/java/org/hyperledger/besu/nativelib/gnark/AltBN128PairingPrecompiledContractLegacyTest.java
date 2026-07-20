@@ -17,9 +17,7 @@ package org.hyperledger.besu.nativelib.gnark;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class AltBN128PairingPrecompiledContractLegacyTest {
@@ -61,21 +59,15 @@ public class AltBN128PairingPrecompiledContractLegacyTest {
 
     final byte[] input = Bytes.concatenate(g1Point0, g2Point0, g1Point1, g2Point1).toArrayUnsafe();
     final byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
-    final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_ERROR_BYTES];
-    final IntByReference errorLength = new IntByReference();
 
-    int ret = LibGnarkEIP196.eip196_perform_operation(
+    int errorCode = LibGnarkEIP196.eip196_perform_operation(
         LibGnarkEIP196.EIP196_PAIR_OPERATION_RAW_VALUE,
         input,
         input.length,
-        output,
-        outputLength,
-        error,
-        errorLength);
+        output);
 
-    assertThat(ret).isEqualTo(0);
-    assertThat(output[outputLength.getValue() - 1]).isEqualTo((byte) 1);
+    assertThat(errorCode).isEqualTo(LibGnarkEIP196.EIP196_ERR_CODE_SUCCESS);
+    assertThat(output[31]).isEqualTo((byte) 1);
   }
 
   @Test
@@ -115,24 +107,14 @@ public class AltBN128PairingPrecompiledContractLegacyTest {
 
     final byte[] input = Bytes.concatenate(g1Point0, g2Point0, g1Point1, g2Point1).toArrayUnsafe();
     final byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
-    final IntByReference outputLength = new IntByReference(output.length);
-    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_ERROR_BYTES];
-    final IntByReference errorLength = new IntByReference();
 
-    LibGnarkEIP196.eip196_perform_operation(
+    int errorCode = LibGnarkEIP196.eip196_perform_operation(
         LibGnarkEIP196.EIP196_PAIR_OPERATION_RAW_VALUE,
         input,
         input.length,
-        output,
-        outputLength,
-        error,
-        errorLength);
+        output);
 
     // assert there is an error
-    assertThat(errorLength.getValue()).isNotEqualTo(0);
-    String errorStr = new String(error, 0, errorLength.getValue());
-    assertThat(errorStr).isEqualTo("invalid input parameters, point is not in subgroup");
-    // assert there is no output
-    assertThat(outputLength.getValue()).isEqualTo(0);
+    assertThat(errorCode).isEqualTo(LibGnarkEIP196.EIP196_ERR_CODE_POINT_IN_SUBGROUP_CHECK_FAILED);
   }
 }
