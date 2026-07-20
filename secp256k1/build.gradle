@@ -19,10 +19,29 @@ plugins {
   id 'com.jfrog.artifactory' version '5.2.3'
 }
 
+// Configure source sets - separate GraalVM classes from main JAR
+sourceSets {
+  graal {
+    java {
+      srcDir 'src/main/java'
+      include '**/*Graal*.java'
+    }
+  }
+  main {
+    java {
+      exclude '**/*Graal*.java'
+    }
+  }
+}
+
 dependencies {
   implementation project(':common')
-  testImplementation 'com.google.guava:guava:31.1-jre'
   implementation 'net.java.dev.jna:jna:5.12.1'
+
+  // GraalVM SDK only for graal source set
+  graalImplementation 'org.graalvm.sdk:graal-sdk:24.0.2'
+
+  testImplementation 'com.google.guava:guava:31.1-jre'
   testImplementation 'net.java.dev.jna:jna:5.12.1'
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.assertj:assertj-core:3.22.0'
@@ -92,6 +111,58 @@ task linuxRiscv64JNILibCopy(type: Copy) {
 }
 processResources.dependsOn linuxRiscv64JNILibCopy
 
+// Static library copy tasks (for GraalVM native-image)
+task macArmStaticLibCopy(type: Copy) {
+  from 'secp256k1_jni/build/darwin-aarch64/lib/libsecp256k1.a'
+  from 'secp256k1_jni/build/darwin-aarch64/lib/libsecp256k1_ecrecover.a'
+  from 'secp256k1_jni/build/darwin-aarch64/lib/secp256k1_ecrecover.h'
+  from 'secp256k1_jni/build/darwin-aarch64/lib/secp256k1.h'
+  from 'secp256k1_jni/build/darwin-aarch64/lib/secp256k1_recovery.h'
+  into 'build/resources-static/lib/aarch64'
+}
+
+task macStaticLibCopy(type: Copy) {
+  from 'secp256k1_jni/build/darwin-x86-64/lib/libsecp256k1.a'
+  from 'secp256k1_jni/build/darwin-x86-64/lib/libsecp256k1_ecrecover.a'
+  from 'secp256k1_jni/build/darwin-x86-64/lib/secp256k1_ecrecover.h'
+  from 'secp256k1_jni/build/darwin-x86-64/lib/secp256k1.h'
+  from 'secp256k1_jni/build/darwin-x86-64/lib/secp256k1_recovery.h'
+  into 'build/resources-static/lib/x86-64'
+}
+
+task linuxStaticLibCopy(type: Copy) {
+  from 'secp256k1_jni/build/linux-gnu-x86_64/lib/libsecp256k1.a'
+  from 'secp256k1_jni/build/linux-gnu-x86_64/lib/libsecp256k1_ecrecover.a'
+  from 'secp256k1_jni/build/linux-gnu-x86_64/lib/secp256k1_ecrecover.h'
+  from 'secp256k1_jni/build/linux-gnu-x86_64/lib/secp256k1.h'
+  from 'secp256k1_jni/build/linux-gnu-x86_64/lib/secp256k1_recovery.h'
+  into 'build/resources-static/lib/x86-64'
+}
+
+task linuxArm64StaticLibCopy(type: Copy) {
+  from 'secp256k1_jni/build/linux-gnu-aarch64/lib/libsecp256k1.a'
+  from 'secp256k1_jni/build/linux-gnu-aarch64/lib/libsecp256k1_ecrecover.a'
+  from 'secp256k1_jni/build/linux-gnu-aarch64/lib/secp256k1_ecrecover.h'
+  from 'secp256k1_jni/build/linux-gnu-aarch64/lib/secp256k1.h'
+  from 'secp256k1_jni/build/linux-gnu-aarch64/lib/secp256k1_recovery.h'
+  into 'build/resources-static/lib/aarch64'
+}
+
+task linuxRiscv64StaticLibCopy(type: Copy) {
+  from 'secp256k1_jni/build/linux-gnu-riscv64/lib/libsecp256k1.a'
+  from 'secp256k1_jni/build/linux-gnu-riscv64/lib/libsecp256k1_ecrecover.a'
+  from 'secp256k1_jni/build/linux-gnu-riscv64/lib/secp256k1_ecrecover.h'
+  from 'secp256k1_jni/build/linux-gnu-riscv64/lib/secp256k1.h'
+  from 'secp256k1_jni/build/linux-gnu-riscv64/lib/secp256k1_recovery.h'
+  into 'build/resources-static/lib/riscv64'
+}
+
+// Task to prepare static resources
+task prepareStaticResources {
+  dependsOn macArmStaticLibCopy, macStaticLibCopy, linuxStaticLibCopy,
+            linuxArm64StaticLibCopy, linuxRiscv64StaticLibCopy
+}
+
 jar {
   archiveBaseName = 'besu-native-secp256k1'
   includeEmptyDirs = false
@@ -118,6 +189,14 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
   from javadoc.destinationDir
 }
 
+task staticJar(type: Jar, dependsOn: [prepareStaticResources, graalClasses]) {
+  archiveBaseName = 'besu-native-secp256k1'
+  archiveClassifier = 'static'
+  from 'build/resources-static'
+  from sourceSets.graal.output
+  includeEmptyDirs = false
+}
+
 publishing {
   publications {
     mavenJava(MavenPublication) {
@@ -128,6 +207,7 @@ publishing {
       from components.java
       artifact sourcesJar
       artifact javadocJar
+      artifact staticJar
 
       pom {
         name = "Besu Native - ${project.name}"
