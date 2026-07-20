@@ -16,7 +16,6 @@
 package org.hyperledger.besu.nativelib.gnark;
 
 import com.google.common.io.CharStreams;
-import com.sun.jna.ptr.IntByReference;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,19 +59,15 @@ public class AltBN128G1MulPrecompiledContractTest {
     final byte[] input = Bytes.fromHexString(this.input).toArrayUnsafe();
 
     final byte[] output = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES];
-    final IntByReference outputLength = new IntByReference();
-    final byte[] error = new byte[LibGnarkEIP196.EIP196_PREALLOCATE_FOR_ERROR_BYTES];
-    final IntByReference errorLength = new IntByReference();
 
-    LibGnarkEIP196.eip196_perform_operation(LibGnarkEIP196.EIP196_MUL_OPERATION_RAW_VALUE, input,
-        input.length, output, outputLength, error, errorLength);
+    int errorCode = LibGnarkEIP196.eip196_perform_operation(LibGnarkEIP196.EIP196_MUL_OPERATION_RAW_VALUE, input,
+        input.length, output);
     final Bytes expectedComputation =
         expectedResult == null ? null : Bytes.fromHexString(expectedResult);
-    if (errorLength.getValue() > 0) {
-      assertThat(new String(error, 0, errorLength.getValue(), UTF_8)).contains(notes);
-      assertThat(outputLength.getValue()).isZero();
+    if (errorCode != LibGnarkEIP196.EIP196_ERR_CODE_SUCCESS) {
+      assertThat(notes).isNotEmpty();
     } else {
-      final Bytes actualComputation = Bytes.wrap(output, 0, outputLength.getValue());
+      final Bytes actualComputation = Bytes.wrap(output, 0, LibGnarkEIP196.EIP196_PREALLOCATE_FOR_RESULT_BYTES);
       assertThat(actualComputation).isEqualTo(expectedComputation);
       assertThat(notes).isEmpty();
     }

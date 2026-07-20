@@ -40,7 +40,10 @@ public class BesuNativeLibraryLoader {
   public static void registerJNA(Class jnaClass, String libraryName) {
 
     try {
-      final Optional<Path> libPath = extract(jnaClass, libraryName);
+      String moduleContextClassName = Thread.currentThread().getStackTrace()[2].getClassName();
+      Class<?> moduleContextClass = Class.forName(moduleContextClassName);
+
+      final Optional<Path> libPath = extract(moduleContextClass, libraryName);
 
       if (libPath.isPresent()) {
         NativeLibrary lib = NativeLibrary.getInstance(libPath.get().toString());
@@ -55,6 +58,8 @@ public class BesuNativeLibraryLoader {
                 "Couldn't load native library (%s). It wasn't available at %s or the library path.",
                 libraryName, asLibraryResourcePath(libraryName));
         throw new RuntimeException(exceptionMessage);
+    } catch (ClassNotFoundException e) {
+        throw new RuntimeException(e);
     }
   }
 
@@ -122,6 +127,8 @@ public class BesuNativeLibraryLoader {
     if (Arrays.asList(X86_VARIANTS).contains(arch)) {
       arch = "x86-64";
     }
-    return String.format("lib/%s/%s", arch, platformNativeLibraryName );
+    // It is important that the folder 'lib-native' contains a '-' such that it is only
+    // folder and not a 'java package' to wich visibility rules may be applied by JPMS.
+    return String.format("lib-native/%s/%s", arch, platformNativeLibraryName );
   }
 }
