@@ -52,62 +52,62 @@ dependencies {
 
 task macArmLibCopy(type: Copy) {
   from 'build/darwin-aarch64/lib/libsecp256k1.dylib'
-  into 'build/resources/main/lib/aarch64'
+  into 'build/resources/main/lib-native/aarch64'
 }
 processResources.dependsOn macArmLibCopy
 
 task macLibCopy(type: Copy) {
   from 'build/darwin-x86-64/lib/libsecp256k1.dylib'
-  into 'build/resources/main/lib/x86-64'
+  into 'build/resources/main/lib-native/x86-64'
 }
 processResources.dependsOn macLibCopy
 
 task linuxLibCopy(type: Copy) {
   from 'build/linux-gnu-x86_64/lib/libsecp256k1.so'
-  into 'build/resources/main/lib/x86-64'
+  into 'build/resources/main/lib-native/x86-64'
 }
 processResources.dependsOn linuxLibCopy
 
 task linuxArm64LibCopy(type: Copy) {
   from 'build/linux-gnu-aarch64/lib/libsecp256k1.so'
-  into 'build/resources/main/lib/aarch64'
+  into 'build/resources/main/lib-native/aarch64'
 }
 processResources.dependsOn linuxArm64LibCopy
 
 task linuxRiscv64LibCopy(type: Copy) {
   from 'build/linux-gnu-riscv64/lib/libsecp256k1.so'
-  into 'build/resources/main/lib/riscv64'
+  into 'build/resources/main/lib-native/riscv64'
 }
 processResources.dependsOn linuxRiscv64LibCopy
 
 // JNI library copy tasks
 task macArmJNILibCopy(type: Copy) {
   from 'build/darwin-aarch64/lib/libsecp256k1_ecrecover.dylib'
-  into 'build/resources/main/lib/aarch64'
+  into 'build/resources/main/lib-native/aarch64'
 }
 processResources.dependsOn macArmJNILibCopy
 
 task macJNILibCopy(type: Copy) {
   from 'build/darwin-x86-64/lib/libsecp256k1_ecrecover.dylib'
-  into 'build/resources/main/lib/x86-64'
+  into 'build/resources/main/lib-native/x86-64'
 }
 processResources.dependsOn macJNILibCopy
 
 task linuxJNILibCopy(type: Copy) {
   from 'build/linux-gnu-x86_64/lib/libsecp256k1_ecrecover.so'
-  into 'build/resources/main/lib/x86-64'
+  into 'build/resources/main/lib-native/x86-64'
 }
 processResources.dependsOn linuxJNILibCopy
 
 task linuxArm64JNILibCopy(type: Copy) {
   from 'build/linux-gnu-aarch64/lib/libsecp256k1_ecrecover.so'
-  into 'build/resources/main/lib/aarch64'
+  into 'build/resources/main/lib-native/aarch64'
 }
 processResources.dependsOn linuxArm64JNILibCopy
 
 task linuxRiscv64JNILibCopy(type: Copy) {
   from 'build/linux-gnu-riscv64/lib/libsecp256k1_ecrecover.so'
-  into 'build/resources/main/lib/riscv64'
+  into 'build/resources/main/lib-native/riscv64'
 }
 processResources.dependsOn linuxRiscv64JNILibCopy
 
@@ -212,7 +212,7 @@ publishing {
       pom {
         name = "Besu Native - ${project.name}"
         description = 'Adapter for native secp256k1 library'
-        url = 'http://github.com/hyperledger/besu-native'
+        url = 'http://github.com/besu-eth/besu-native'
         licenses {
           license {
             name = 'The Apache License, Version 2.0'
@@ -220,9 +220,9 @@ publishing {
           }
         }
         scm {
-          connection = 'scm:git:git://github.com/hyperledger/besu-native.git'
-          developerConnection = 'scm:git:ssh://github.com/hyperledger/besu-native.git'
-          url = 'https://github.com/hyperledger/besu-native'
+          connection = 'scm:git:git://github.com/besu-eth/besu-native.git'
+          developerConnection = 'scm:git:ssh://github.com/besu-eth/besu-native.git'
+          url = 'https://github.com/besu-eth/besu-native'
         }
       }
     }

@@ -21,6 +21,7 @@ import (
 
 	mimcBls12377 "github.com/consensys/gnark-crypto/ecc/bls12-377/fr/mimc"
 	mimcBn254 "github.com/consensys/gnark-crypto/ecc/bn254/fr/mimc"
+	poseidon2KoalaBear "github.com/consensys/gnark-crypto/field/koalabear/poseidon2"
 )
 
 func MiMCBls12377Hash(b []byte) []byte {
@@ -31,6 +32,12 @@ func MiMCBls12377Hash(b []byte) []byte {
 
 func MiMCBn254Hash(b []byte) []byte {
 	hasher := mimcBn254.NewMiMC()
+	hasher.Write(b)
+	return hasher.Sum(nil)
+}
+
+func Poseidon2KoalaBearHash(b []byte) []byte {
+	hasher := poseidon2KoalaBear.NewMerkleDamgardHasher()
 	hasher.Write(b)
 	return hasher.Sum(nil)
 }
@@ -49,6 +56,15 @@ func computeMimcBls12377(input *C.char, inputLength C.int, output *C.char) C.int
 	inputSlice := C.GoBytes(unsafe.Pointer(input), inputLength)
 	outputSlice := (*[32]byte)(unsafe.Pointer(output))[:]
 	hash := MiMCBls12377Hash(inputSlice)
+	copy(outputSlice, hash)
+	return C.int(len(hash))
+}
+
+//export computePoseidon2Koalabear
+func computePoseidon2Koalabear(input *C.char, inputLength C.int, output *C.char) C.int {
+	inputSlice := C.GoBytes(unsafe.Pointer(input), inputLength)
+	outputSlice := (*[32]byte)(unsafe.Pointer(output))[:]
+	hash := Poseidon2KoalaBearHash(inputSlice)
 	copy(outputSlice, hash)
 	return C.int(len(hash))
 }

@@ -43,4 +43,7 @@ public class LibGnark {
     public static native int computeMimcBls12377(
         byte[] i, int i_len, byte[] o);
 
+    public static native int computePoseidon2Koalabear(
+        byte[] i, int i_len, byte[] o);
+
 }
