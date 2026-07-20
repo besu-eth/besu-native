@@ -261,17 +261,26 @@ EOF
 
   if [[ "$OSTYPE" == "msys" ]]; then
     	LIBRARY_EXTENSION=dll
+      STATIC_EXTENSION=lib
   elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     LIBRARY_EXTENSION=so
+    STATIC_EXTENSION=a
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     LIBRARY_EXTENSION=dylib
+    STATIC_EXTENSION=a
     export GOROOT=$(brew --prefix go@1.25)/libexec
     export PATH=$GOROOT/bin:$PATH
   fi
 
+  # Build shared libraries
   go build -buildmode=c-shared -o libgnark_jni.$LIBRARY_EXTENSION gnark-jni.go
   go build -buildmode=c-shared -o libgnark_eip_2537.$LIBRARY_EXTENSION gnark-eip-2537.go
   go build -buildmode=c-shared -o libgnark_eip_196.$LIBRARY_EXTENSION gnark-eip-196.go
+
+  # Build static libraries (c-archive creates .a files)
+  go build -buildmode=c-archive -o libgnark_jni.$STATIC_EXTENSION gnark-jni.go
+  go build -buildmode=c-archive -o libgnark_eip_2537.$STATIC_EXTENSION gnark-eip-2537.go
+  go build -buildmode=c-archive -o libgnark_eip_196.$STATIC_EXTENSION gnark-eip-196.go
 
   mkdir -p "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
   cp libgnark_jni.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"

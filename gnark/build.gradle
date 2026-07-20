@@ -19,9 +19,31 @@ plugins {
     id 'com.jfrog.artifactory' version '5.2.3'
 }
 
+// Configure source sets - separate GraalVM classes from main JAR
+sourceSets {
+  graal {
+    java {
+      srcDir 'src/main/java'
+      include '**/*Graal*.java'
+    }
+    // Graal source set needs access to main source set classes
+    compileClasspath += sourceSets.main.output
+  }
+  main {
+    java {
+      exclude '**/*Graal*.java'
+    }
+  }
+}
+
 dependencies {
     implementation 'net.java.dev.jna:jna:5.12.1'
     implementation project(':common')
+
+    // GraalVM SDK only for graal source set
+    graalImplementation 'org.graalvm.sdk:graal-sdk:24.0.2'
+    graalImplementation project(':common')
+    graalImplementation 'net.java.dev.jna:jna:5.12.1'
     testImplementation 'com.google.guava:guava:31.1-jre'
     testImplementation 'net.java.dev.jna:jna:5.12.1'
     testImplementation 'io.consensys.tuweni:tuweni-bytes:2.7.1'
@@ -30,6 +52,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:4.4.0'
 }
 
+// Dynamic library copy tasks (for JNA)
 task macArmLibCopy(type: Copy) {
     from 'build/darwin-aarch64/lib/libgnark_jni.dylib'
     from 'build/darwin-aarch64/lib/libgnark_eip_2537.dylib'
@@ -70,6 +93,63 @@ task linuxRiscv64LibCopy(type: Copy) {
 }
 processResources.dependsOn linuxRiscv64LibCopy
 
+// Static library copy tasks (for GraalVM native-image)
+task macArmStaticLibCopy(type: Copy) {
+    from 'build/darwin-aarch64/lib/libgnark_jni.a'
+    from 'build/darwin-aarch64/lib/libgnark_eip_2537.a'
+    from 'build/darwin-aarch64/lib/libgnark_eip_196.a'
+    from 'build/darwin-aarch64/lib/libgnark_jni.h'
+    from 'build/darwin-aarch64/lib/libgnark_eip_2537.h'
+    from 'build/darwin-aarch64/lib/libgnark_eip_196.h'
+    into 'build/resources-static/lib/aarch64'
+}
+
+task macStaticLibCopy(type: Copy) {
+    from 'build/darwin-x86-64/lib/libgnark_jni.a'
+    from 'build/darwin-x86-64/lib/libgnark_eip_2537.a'
+    from 'build/darwin-x86-64/lib/libgnark_eip_196.a'
+    from 'build/darwin-x86-64/lib/libgnark_jni.h'
+    from 'build/darwin-x86-64/lib/libgnark_eip_2537.h'
+    from 'build/darwin-x86-64/lib/libgnark_eip_196.h'
+    into 'build/resources-static/lib/x86-64'
+}
+
+task linuxStaticLibCopy(type: Copy) {
+    from 'build/linux-gnu-x86_64/lib/libgnark_jni.a'
+    from 'build/linux-gnu-x86_64/lib/libgnark_eip_2537.a'
+    from 'build/linux-gnu-x86_64/lib/libgnark_eip_196.a'
+    from 'build/linux-gnu-x86_64/lib/libgnark_jni.h'
+    from 'build/linux-gnu-x86_64/lib/libgnark_eip_2537.h'
+    from 'build/linux-gnu-x86_64/lib/libgnark_eip_196.h'
+    into 'build/resources-static/lib/x86-64'
+}
+
+task linuxArm64StaticLibCopy(type: Copy) {
+    from 'build/linux-gnu-aarch64/lib/libgnark_jni.a'
+    from 'build/linux-gnu-aarch64/lib/libgnark_eip_2537.a'
+    from 'build/linux-gnu-aarch64/lib/libgnark_eip_196.a'
+    from 'build/linux-gnu-aarch64/lib/libgnark_jni.h'
+    from 'build/linux-gnu-aarch64/lib/libgnark_eip_2537.h'
+    from 'build/linux-gnu-aarch64/lib/libgnark_eip_196.h'
+    into 'build/resources-static/lib/aarch64'
+}
+
+task linuxRiscv64StaticLibCopy(type: Copy) {
+    from 'build/linux-gnu-riscv64/lib/libgnark_jni.a'
+    from 'build/linux-gnu-riscv64/lib/libgnark_eip_2537.a'
+    from 'build/linux-gnu-riscv64/lib/libgnark_eip_196.a'
+    from 'build/linux-gnu-riscv64/lib/libgnark_jni.h'
+    from 'build/linux-gnu-riscv64/lib/libgnark_eip_2537.h'
+    from 'build/linux-gnu-riscv64/lib/libgnark_eip_196.h'
+    into 'build/resources-static/lib/riscv64'
+}
+
+// Task to prepare static resources
+task prepareStaticResources {
+    dependsOn macArmStaticLibCopy, macStaticLibCopy, linuxStaticLibCopy,
+              linuxArm64StaticLibCopy, linuxRiscv64StaticLibCopy
+}
+
 jar {
     archiveBaseName = 'besu-native-gnark'
     includeEmptyDirs = false
@@ -96,6 +176,14 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
+task staticJar(type: Jar, dependsOn: [prepareStaticResources, graalClasses]) {
+    archiveBaseName = 'besu-native-gnark'
+    archiveClassifier = 'static'
+    from 'build/resources-static'
+    from sourceSets.graal.output
+    includeEmptyDirs = false
+}
+
 
 publishing {
     publications {
@@ -107,6 +195,7 @@ publishing {
             from components.java
             artifact sourcesJar
             artifact javadocJar
+            artifact staticJar
 
             pom {
                 name = "Besu Native - ${project.name}"
