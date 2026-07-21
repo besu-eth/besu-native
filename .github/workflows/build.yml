@@ -64,7 +64,7 @@ jobs:
           # secp256k1 dependencies
           apt-get update
           apt upgrade -y
-          DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf build-essential libtool automake wget git curl openjdk-21-jdk cmake
+          DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf build-essential libtool automake wget git curl openjdk-25-jdk cmake
           apt autoremove -y
           echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
           # golang dependencies
@@ -266,7 +266,7 @@ jobs:
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
@@ -462,7 +462,7 @@ jobs:
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           distribution: adopt
-          java-version: 21
+          java-version: 25
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
       - name: Execute Gradle Build
