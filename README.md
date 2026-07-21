@@ -13,7 +13,7 @@ You'll need to be sure that gcc, make, autoconf, automake, and libtool are insta
 building on Ubuntu or Debian, the following command will install these dependencies for you:
 
 ```
-sudo apt-get install build-essential automake autoconf libtool patchelf cmake
+sudo apt-get install build-essential automake autoconf libtool cmake
 ```
 
 ### OS X

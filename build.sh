@@ -42,12 +42,14 @@ fi
 
 if [[ "$OSTYPE" == "darwin"* ]];  then
   CORE_COUNT=$(sysctl -n hw.ncpu)
+  # Set deployment target for Apple Silicon support (macOS 11.0+)
+  export MACOSX_DEPLOYMENT_TARGET=11.0
   if [[ "`machine`" == "arm"* ]]; then
     arch_name="aarch64"
-    export CFLAGS="-arch arm64"
+    export CFLAGS="-arch arm64 -mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
   else
     arch_name="x86-64"
-    export CFLAGS="-arch x86_64"
+    export CFLAGS="-arch x86_64 -mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
   fi
   OSARCH="darwin-$arch_name"
 fi
@@ -162,41 +164,6 @@ EOF
   cp target/release/libeth_arithmetic.* "$SCRIPTDIR/arithmetic/build/${OSARCH}/lib"
 }
 
-build_ipa_multipoint() {
-  cat <<EOF
-  ##################################
-  ###### build ipa_multipoint ######
-  ##################################
-EOF
-
-  cd "$SCRIPTDIR/ipa-multipoint/ipa_multipoint_jni"
-
-  # delete old build dir, if exists
-  rm -rf "$SCRIPTDIR/ipa-multipoint/build" || true
-  mkdir -p "$SCRIPTDIR/ipa-multipoint/build/${OSARCH}/lib"
-
-  cargo clean
-
-  if [[ "$OSARCH" == "darwin-x86-64" ]];  then
-    cargo build --lib --release --target=x86_64-apple-darwin
-    lipo -create \
-      -output target/release/libipa_multipoint_jni.dylib \
-      -arch x86_64 target/x86_64-apple-darwin/release/libipa_multipoint_jni.dylib
-    lipo -info ./target/release/libipa_multipoint_jni.dylib
-  elif [[ "$OSARCH" == "darwin-aarch64" ]]; then
-    cargo build --lib --release --target=aarch64-apple-darwin
-    lipo -create \
-      -output target/release/libipa_multipoint_jni.dylib \
-      -arch arm64 target/aarch64-apple-darwin/release/libipa_multipoint_jni.dylib
-    lipo -info ./target/release/libipa_multipoint_jni.dylib
-  else
-    cargo build --lib --release
-  fi
-
-  mkdir -p "$SCRIPTDIR/ipa-multipoint/build/${OSARCH}/lib"
-  cp target/release/libipa_multipoint_jni.* "$SCRIPTDIR/ipa-multipoint/build/${OSARCH}/lib"
-}
-
 build_jars(){
   ########################
   ###### build jars ######
@@ -242,14 +209,8 @@ EOF
   rm -rf "$SCRIPTDIR/secp256r1/build" || true
   find . -name *.o -exec rm -rf {} \;
 
-  if [[ "$OSTYPE" == "msys" ]]; then
-  	LIBRARY_EXTENSION=dll
-  	EXTRA_FLAGS=""
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    LIBRARY_EXTENSION=so
-    EXTRA_FLAGS=""
-  elif [[ "$OSTYPE" == "darwin"* ]]; then
-    LIBRARY_EXTENSION=dylib
+  EXTRA_FLAGS=""
+  if [[ "$OSTYPE" == "darwin"* ]]; then
     EXTRA_FLAGS="no-asm" # avoid assembly because of pipeline error
   fi
 
@@ -264,13 +225,14 @@ EOF
 
   cd openssl
 
-  ./Configure $OPENSSL_PLATFORM enable-ec_nistp_64_gcc_128 no-stdio no-ocsp no-nextprotoneg no-module \
+  ./Configure $OPENSSL_PLATFORM no-shared -fPIC -fvisibility=hidden \
+              enable-ec_nistp_64_gcc_128 no-stdio no-ocsp no-nextprotoneg no-module \
               no-legacy no-gost no-engine no-dynamic-engine no-deprecated no-comp \
               no-cmp no-capieng no-ui-console no-tls no-ssl no-dtls no-aria no-bf \
               no-blake2 no-camellia no-cast no-chacha no-cmac no-des no-dh no-dsa \
               no-ecdh no-idea no-md4 no-mdc2 no-ocb no-poly1305 no-rc2 no-rc4 no-rmd160 \
               no-scrypt no-seed no-siphash no-siv no-sm2 no-sm3 no-sm4 no-whirlpool $EXTRA_FLAGS
-  make build_generated libcrypto.$LIBRARY_EXTENSION
+  make build_generated libcrypto.a
 
   cd ../
 
@@ -278,7 +240,6 @@ EOF
 
   if [[ "$OSTYPE" == "darwin"* ]]; then
     lipo -info ./release/libbesu_native_ec.dylib
-    lipo -info ./release/libbesu_native_ec_crypto.dylib
   fi
 
   mkdir -p "./release/${OSARCH}"
@@ -302,17 +263,26 @@ EOF
 
   if [[ "$OSTYPE" == "msys" ]]; then
     	LIBRARY_EXTENSION=dll
+      STATIC_EXTENSION=lib
   elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     LIBRARY_EXTENSION=so
+    STATIC_EXTENSION=a
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     LIBRARY_EXTENSION=dylib
-    export GOROOT=$(brew --prefix go@1.24)/libexec
+    STATIC_EXTENSION=a
+    export GOROOT=$(brew --prefix go@1.25)/libexec
     export PATH=$GOROOT/bin:$PATH
   fi
 
+  # Build shared libraries
   go build -buildmode=c-shared -o libgnark_jni.$LIBRARY_EXTENSION gnark-jni.go
   go build -buildmode=c-shared -o libgnark_eip_2537.$LIBRARY_EXTENSION gnark-eip-2537.go
   go build -buildmode=c-shared -o libgnark_eip_196.$LIBRARY_EXTENSION gnark-eip-196.go
+
+  # Build static libraries (c-archive creates .a files)
+  go build -buildmode=c-archive -o libgnark_jni.$STATIC_EXTENSION gnark-jni.go
+  go build -buildmode=c-archive -o libgnark_eip_2537.$STATIC_EXTENSION gnark-eip-2537.go
+  go build -buildmode=c-archive -o libgnark_eip_196.$STATIC_EXTENSION gnark-eip-196.go
 
   mkdir -p "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
   cp libgnark_jni.* "$SCRIPTDIR/gnark/build/${OSARCH}/lib"
@@ -394,7 +364,12 @@ EOF
   cd "$SCRIPTDIR/boringssl/google-boringssl/"
   rm -rf build && mkdir build
   #-fPIC is redundant on macos, but required for building on linux
-  cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release
+  # Set deployment target explicitly to match JNI build
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET}
+  else
+    cmake -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+  fi
   make -C build
 
   # build boringssl_jni shared lib linked against boringssl static lib
@@ -410,7 +385,6 @@ EOF
 build_blake2bf
 build_secp256k1
 build_arithmetic
-build_ipa_multipoint
 build_secp256r1
 build_gnark
 build_constantine

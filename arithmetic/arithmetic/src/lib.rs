@@ -38,7 +38,7 @@ pub extern "C" fn modexp_precompiled(
     let input_i8: &[libc::c_char] = unsafe { std::slice::from_raw_parts(i, i_len as usize) };
     let input: &[u8] = unsafe { std::mem::transmute(input_i8) };
 
-    let raw_out_i8: &mut [libc::c_char] = unsafe { std::slice::from_raw_parts_mut(o, o_len as usize) };
+    let raw_out_i8: &mut [libc::c_char] = unsafe { std::slice::from_raw_parts_mut(o, *o_len as usize) };
     let mut raw_out: &mut [u8] = unsafe { std::mem::transmute(raw_out_i8) };
     let answer = modexp_precompiled_impl(input);
 
@@ -132,4 +132,37 @@ pub fn modexp(base: &[u8], exp: &[u8], modulus: &[u8]) -> Vec<u8> {
     }
     let result = x.modpow(exp, &m);
     result.to_big_endian()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_modexp_precompiled() {
+        let mut output_len: u32 = 32;
+        let o_len_ptr = &mut output_len as *mut u32;
+
+        let mut input = vec![0u8; 96];
+        input[31] = 1;  // base_len = 1
+        input[63] = 1;  // exp_len = 1
+        input[95] = 1;  // mod_len = 1
+        input.push(2);  // base = 2
+        input.push(3);  // exp = 3
+        input.push(5);  // mod = 5
+
+        let input_i8: Vec<i8> = input.iter().map(|&x| x as i8).collect();
+        let mut output = vec![0i8; output_len as usize];
+
+        let result = modexp_precompiled(
+            input_i8.as_ptr(),
+            input_i8.len() as u32,
+            output.as_mut_ptr(),
+            o_len_ptr,
+        );
+
+		assert_eq!(result, 0); // Expect success
+		assert_eq!(output_len, 1); // Expect output length to be 1
+		assert_eq!(output[0], 3); // Expect output to be 3 (2^3 % 5 = 3)
+    }
 }

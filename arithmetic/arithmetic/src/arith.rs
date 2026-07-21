@@ -13,7 +13,7 @@
 use crate::{
     mpnat::{DoubleWord, MPNat, Word, BASE, WORD_BITS},
 };
-pub use std::{vec, vec::Vec};
+pub use std::vec;
 
 // Computes the "Montgomery Product" of two numbers.
 // See Coarsely Integrated Operand Scanning (CIOS) Method in
