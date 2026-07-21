@@ -1,5 +1,8 @@
 # Changelog
 
+# 2.1.0-SNAPSHOT (Unreleased)
+
+
 # 2.0.0 - 2026-07-21
 * BREAKING: Remove the `ipa-multipoint` library as it is no longer needed.
 * Bump gnark to resolve CVEs in https://github.com/besu-eth/besu-native/pull/317
