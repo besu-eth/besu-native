@@ -1,8 +1,15 @@
 # Changelog
 
-# 1.5.1-SNAPSHOT (Unreleased)
-* BREAKING: Remove the `ipa-multipoint` library as it is no longer needed.
+# 2.1.0-SNAPSHOT (Unreleased)
 
+
+# 2.0.0 - 2026-07-21
+* BREAKING: Remove the `ipa-multipoint` library as it is no longer needed.
+* Bump gnark to resolve CVEs in https://github.com/besu-eth/besu-native/pull/317
+* updated boringssl in https://github.com/besu-eth/besu-native/pull/318
+* Graal gnark static libs and artifact by @garyschulte in https://github.com/besu-eth/besu-native/pull/292
+* Static libs and jar artifact for secp256k1 in https://github.com/besu-eth/besu-native/pull/297
+* Static libs and jar artifact for boringssl in https://github.com/besu-eth/besu-native/pull/298
 
 # 1.5.0 - 2026-03-24
 * fix: Static-link OpenSSL in secp256r1 to prevent symbol leaking into JVM process. Removes separate `libbesu_native_ec_crypto` shared library. [#308](https://github.com/besu-eth/besu-native/pull/308)
