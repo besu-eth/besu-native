@@ -24,7 +24,7 @@ import org.junit.Test;
 
 public class BLS12G2PointDecodingTests {
 
-  // Valid G2 point - zero point (point at infinity) - 256 bytes (512 hex chars)
+  // Valid G2 point - 256 bytes (512 hex chars)
   private static final String VALID_G2_POINT =
       "00000000000000000000000000000000124aca13d9ead2e5194eb097360743fc996551a5f339d644ded3571c5588a1fedf3f26ecdca73845241e47337e8ad990" +
       "000000000000000000000000000000000299bfd77515b688335e58acb31f7e0e6416840989cb08775287f90f7e6c921438b7b476cfa387742fcdc43bcecfe45f" +
@@ -38,7 +38,7 @@ public class BLS12G2PointDecodingTests {
     "00000000000000000000000000000000153a9002d117a518b2c1786f9e8b95b00e936f3f15302a27a16d7f2f8fc48ca834c0cf4fce456e96d72f01f252f4d084" +
     "000000000000000000000000000000001091fc53100190db07ec2057727859e65da996f6792ac5602cb9dfbc3ed4a5a67d6b82bd82112075ef8afc4155db2621";
 
-  // G2 point that's on curve but not in subgroup - use a simple test point (512 hex chars)  
+  // G2 point that's on curve but not in subgroup
   private static final String G2_POINT_NOT_IN_SUBGROUP =
       "000000000000000000000000000000000380f5c0d9ae49e3904c5ae7ad83043158d68fa721b06b561e714b71a2c48c2307b5258892f999a882bed3549a286b7f" +
       "0000000000000000000000000000000004886f7f17a8e9918b4bfa8ebe450b0216ed5e1fa103dfc671332dc38b04ed3105526fb0dda7e032b6fb67debf9f0bc5" +

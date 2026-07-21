@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BLS12G1PointDecodingTests {
 
-  // Valid G1 point from existing test data - 128 bytes with proper padding
+  // Valid G1 point - 128 bytes (256 hex chars)
   private static final String VALID_G1_POINT = 
       "0000000000000000000000000000000012196c5a43d69224d8713389285f26b98f86ee910ab3dd668e413738282003cc5b7357af9a7af54bb713d62255e80f56" +
       "0000000000000000000000000000000006ba8102bfbeea4416b710c73e8cce3032c31c6269c44906f8ac4f7874ce99fb17559992486528963884ce429a992fee";
@@ -34,7 +34,7 @@ public class BLS12G1PointDecodingTests {
       "00000000000000000000000000000000177b39d2b8d31753ee35033df55a1f891be9196aec9cd8f512e9069d21a8bdbf693bd2e826e792cd12cb554287adf4ca" +
       "0000000000000000000000000000000003c0f5770509862f754fc474cb163c41790d844f52939e2dec87b97c2a707831a4043ab47014d501f67862e95842ba5a";
 
-  // G1 point that's on curve but not in subgroup - use a simple test point (256 hex chars)
+  // G1 point that's on curve but not in subgroup
   private static final String G1_POINT_NOT_IN_SUBGROUP =
     "00000000000000000000000000000000054a4326bbddbdbbca126659e6686984046d2fa49270742e5b6d9017734acf2801f370eebe7af29dfc8d50483609dc00" +
     "000000000000000000000000000000001713e9ef64254fe96d874d16e33636f186e30d7e476db9f49a16698b771f10e0f8f08e5d8dba621b887c0d257cbd8eac";
