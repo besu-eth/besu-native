@@ -50,8 +50,8 @@ static int secp256k1_ecrecover_jni_impl(
         return 1; // output_buffer must be at least 65 bytes
     }
 
-    // restrict recovery id to uncompressed point types
-    if (recovery_id < 0 || recovery_id > 1) {
+    // libsecp256k1 aborts the process on a recovery id outside 0 to 3 instead of failing
+    if (recovery_id < 0 || recovery_id > 3) {
         return 1;
     }
 

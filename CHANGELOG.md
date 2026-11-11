@@ -1,7 +1,7 @@
 # Changelog
 
 # 2.2.0-SNAPSHOT (Unreleased)
-
+* `secp256k1_ecrecover_jni` recovers public keys for recovery ids 2 and 3; the `ecrecover` wrappers still reject them
 
 # 2.1.0 - 2026-10-19
 * Fix `LibSecp256k1JNI` failing to load unless `LibSecp256k1` was loaded first in https://github.com/besu-eth/besu-native/pull/324
