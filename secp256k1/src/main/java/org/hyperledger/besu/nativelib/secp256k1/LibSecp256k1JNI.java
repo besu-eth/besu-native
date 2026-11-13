@@ -60,7 +60,7 @@ public class LibSecp256k1JNI {
    * @param recoveryId   the recovery ID (0, 1, 2, or 3)
    * @param outputBuffer the output buffer to write the recovered public key (65 bytes
    *                     uncompressed)
-   * @return 1 if recovery was successful, 0 otherwise
+   * @return 0 if recovery was successful, 1 otherwise
    */
   public static native int secp256k1_ecrecover_jni(byte[] messageHash, byte[] signature,
       int recoveryId, byte[] outputBuffer);
@@ -73,6 +73,9 @@ public class LibSecp256k1JNI {
 
   /**
    * Safe wrapper for the native ECRECOVER operation.
+   *
+   * <p>Recovery ids 2 and 3 are rejected, as the ecrecover precompile requires. Call
+   * {@link #secp256k1_ecrecover_jni} directly to recover them.
    *
    * @param messageHash the 32-byte message hash that was signed
    * @param signature   the 64-byte compact signature (r || s)

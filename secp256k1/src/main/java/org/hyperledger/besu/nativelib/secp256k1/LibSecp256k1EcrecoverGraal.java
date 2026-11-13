@@ -100,7 +100,7 @@ public class LibSecp256k1EcrecoverGraal {
      *
      * @param messageHash pointer to 32-byte message hash
      * @param signature pointer to 64-byte compact signature (r || s)
-     * @param recoveryId recovery ID (0 or 1)
+     * @param recoveryId recovery ID (0 to 3)
      * @param outputBuffer pointer to 65-byte output buffer for uncompressed public key
      * @return 0 if recovery was successful, 1 otherwise
      */
@@ -124,6 +124,9 @@ public class LibSecp256k1EcrecoverGraal {
      *   <li>recoveryId must be 0 or 1</li>
      *   <li>outputBuffer must be exactly 65 bytes</li>
      * </ul>
+     *
+     * <p>Recovery ids 2 and 3 are rejected, as the ecrecover precompile requires. Call
+     * {@link #secp256k1EcrecoverNative} directly to recover them.
      *
      * <p><b>Output format:</b> The recovered public key is written to outputBuffer
      * in uncompressed format (65 bytes: 0x04 || x || y).
