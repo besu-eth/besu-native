@@ -500,7 +500,7 @@ jobs:
           name: jars-common
           path: common/build/libs
       - name: gradle publish
-        if: contains('refs/heads/release-', github.ref) || github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/heads/release-') || github.ref == 'refs/heads/main'
         env:
           ARTIFACTORY_USER: ${{ secrets.BESU_ARTIFACTORY_USER }}
           ARTIFACTORY_KEY: ${{ secrets.BESU_ARTIFACTORY_TOKEN }}
